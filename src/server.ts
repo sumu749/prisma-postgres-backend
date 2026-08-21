@@ -14,10 +14,13 @@ interface CreateUserBody {
     email: string;
 }
 
+// GET / endpoint to check if the server is running
+
 app.get("/", (req: Request, res: Response) => {
     res.send("Server is running with TypeScript + Prisma + PostgreSQL 🚀");
 });
 
+// POST /users endpoint to create a new user
 app.post(
     "/users",
     async (req: Request<{}, {}, CreateUserBody>, res: Response) => {
@@ -46,6 +49,27 @@ app.post(
         }
     },
 );
+
+// GET /users endpoint to fetch all users
+
+app.get("/users", async (req: Request, res: Response) => {
+    try {
+        const users = await prisma.user.findMany();
+
+        res.status(200).json({
+            success: true,
+            message: "Users fetched successfully",
+            data: users,
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong",
+        });
+    }
+});
 
 const PORT = process.env.PORT || 5000;
 

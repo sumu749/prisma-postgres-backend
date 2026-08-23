@@ -1,3 +1,4 @@
+import { Prisma } from "./generated/prisma/client";
 import express from "express";
 import type { Request, Response } from "express";
 import cors from "cors";
@@ -26,6 +27,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 // POST /users endpoint to create a new user
+
 app.post(
     "/users",
     async (req: Request<{}, {}, CreateUserBody>, res: Response) => {
@@ -47,9 +49,19 @@ app.post(
         } catch (error) {
             console.error(error);
 
-            res.status(500).json({
+            if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === "P2002"
+            ) {
+                return res.status(409).json({
+                    success: false,
+                    message: "Email already exists",
+                });
+            }
+
+            return res.status(500).json({
                 success: false,
-                message: "Something went wrong",
+                message: "Internal server error",
             });
         }
     },

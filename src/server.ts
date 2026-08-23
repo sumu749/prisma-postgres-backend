@@ -25,6 +25,10 @@ interface CreateTaskBody {
     userId: number;
 }
 
+interface TaskParams {
+    id: string;
+}
+
 // GET / endpoint to check if the server is running
 
 app.get("/", (req: Request, res: Response) => {
@@ -275,6 +279,49 @@ app.get("/tasks", async (req: Request, res: Response) => {
     }
 });
 
+// GET /tasks/:id endpoint to fetch a task by ID
+
+app.get("/tasks/:id", async (req: Request<TaskParams>, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+
+        if (isNaN(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid task ID",
+            });
+        }
+
+        const task = await prisma.task.findUnique({
+            where: {
+                id,
+            },
+            include: {
+                user: true,
+            },
+        });
+
+        if (!task) {
+            return res.status(404).json({
+                success: false,
+                message: "Task not found",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Task fetched successfully",
+            data: task,
+        });
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+});
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

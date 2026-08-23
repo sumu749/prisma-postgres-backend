@@ -112,6 +112,9 @@ app.get("/users/:id", async (req: Request<{ id: string }>, res: Response) => {
             where: {
                 id,
             },
+            include: {
+                tasks: true,
+            },
         });
 
         if (!user) {

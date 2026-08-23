@@ -1,4 +1,4 @@
-import { Prisma } from "./generated/prisma/client";
+import { Prisma } from "./generated/prisma/client.js";
 import express from "express";
 import type { Request, Response } from "express";
 import cors from "cors";
@@ -20,11 +20,18 @@ interface UpdateUserBody {
     email?: string;
 }
 
+interface CreateTaskBody {
+    title: string;
+    userId: number;
+}
+
 // GET / endpoint to check if the server is running
 
 app.get("/", (req: Request, res: Response) => {
     res.send("Server is running with TypeScript + Prisma + PostgreSQL 🚀");
 });
+
+// User endpoints
 
 // POST /users endpoint to create a new user
 
@@ -51,7 +58,7 @@ app.post(
 
             if (
                 error instanceof Prisma.PrismaClientKnownRequestError &&
-                error.code === "P2002"
+                (error as Prisma.PrismaClientKnownRequestError).code === "P2002"
             ) {
                 return res.status(409).json({
                     success: false,
@@ -150,8 +157,8 @@ app.patch(
                     id,
                 },
                 data: {
-                    name,
-                    email,
+                    ...(name !== undefined && { name }),
+                    ...(email !== undefined && { email }),
                 },
             });
 
@@ -203,6 +210,39 @@ app.delete(
             res.status(500).json({
                 success: false,
                 message: "Something went wrong",
+            });
+        }
+    },
+);
+
+// Task endpoints
+
+// POST /tasks endpoint to create a new task
+
+app.post(
+    "/tasks",
+    async (req: Request<{}, {}, CreateTaskBody>, res: Response) => {
+        try {
+            const { title, userId } = req.body;
+
+            const task = await prisma.task.create({
+                data: {
+                    title,
+                    userId,
+                },
+            });
+
+            return res.status(201).json({
+                success: true,
+                message: "Task created successfully",
+                data: task,
+            });
+        } catch (error) {
+            console.error(error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error",
             });
         }
     },

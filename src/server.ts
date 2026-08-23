@@ -14,6 +14,11 @@ interface CreateUserBody {
     email: string;
 }
 
+interface UpdateUserBody {
+    name?: string;
+    email?: string;
+}
+
 // GET / endpoint to check if the server is running
 
 app.get("/", (req: Request, res: Response) => {
@@ -70,6 +75,73 @@ app.get("/users", async (req: Request, res: Response) => {
         });
     }
 });
+
+// GET /users/:id endpoint to fetch a user by ID
+
+app.get("/users/:id", async (req: Request<{ id: string }>, res: Response) => {
+    try {
+        const id = Number(req.params.id);
+
+        const user = await prisma.user.findUnique({
+            where: {
+                id,
+            },
+        });
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "User fetched successfully",
+            data: user,
+        });
+    } catch (error) {
+        console.error(error);
+
+        res.status(500).json({
+            success: false,
+            message: "Something went wrong",
+        });
+    }
+});
+
+app.patch(
+    "/users/:id",
+    async (req: Request<{ id: string }, {}, UpdateUserBody>, res: Response) => {
+        try {
+            const id = Number(req.params.id);
+            const { name, email } = req.body;
+
+            const user = await prisma.user.update({
+                where: {
+                    id,
+                },
+                data: {
+                    name,
+                    email,
+                },
+            });
+
+            res.status(200).json({
+                success: true,
+                message: "User updated successfully",
+                data: user,
+            });
+        } catch (error) {
+            console.error(error);
+
+            res.status(500).json({
+                success: false,
+                message: "Something went wrong",
+            });
+        }
+    },
+);
 
 const PORT = process.env.PORT || 5000;
 

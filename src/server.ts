@@ -248,6 +248,30 @@ app.post(
     },
 );
 
+// GET /tasks endpoint to fetch all tasks
+
+app.get("/tasks", async (req: Request, res: Response) => {
+    try {
+        const tasks = await prisma.task.findMany({
+            include: {
+                user: true,
+            },
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Tasks fetched successfully",
+            data: tasks,
+        });
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

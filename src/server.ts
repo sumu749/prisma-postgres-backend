@@ -328,6 +328,8 @@ app.get("/tasks/:id", async (req: Request<TaskParams>, res: Response) => {
     }
 });
 
+// PATCH /tasks/:id endpoint to update a task by ID
+
 app.patch(
     "/tasks/:id",
     async (req: Request<{ id: string }, {}, UpdateTaskBody>, res: Response) => {
@@ -368,6 +370,52 @@ app.patch(
                 success: true,
                 message: "Task updated successfully",
                 data: updatedTask,
+            });
+        } catch (error) {
+            console.error(error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error",
+            });
+        }
+    },
+);
+
+// DELETE /tasks/:id endpoint to delete a task by ID
+
+app.delete(
+    "/tasks/:id",
+    async (req: Request<{ id: string }>, res: Response) => {
+        try {
+            const id = Number(req.params.id);
+
+            if (isNaN(id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid task ID",
+                });
+            }
+
+            const existingTask = await prisma.task.findUnique({
+                where: { id },
+            });
+
+            if (!existingTask) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Task not found",
+                });
+            }
+
+            const deletedTask = await prisma.task.delete({
+                where: { id },
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Task deleted successfully",
+                data: deletedTask,
             });
         } catch (error) {
             console.error(error);

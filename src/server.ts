@@ -82,6 +82,13 @@ app.get("/users/:id", async (req: Request<{ id: string }>, res: Response) => {
     try {
         const id = Number(req.params.id);
 
+        if (isNaN(id)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid user ID",
+            });
+        }
+
         const user = await prisma.user.findUnique({
             where: {
                 id,
@@ -105,7 +112,7 @@ app.get("/users/:id", async (req: Request<{ id: string }>, res: Response) => {
 
         res.status(500).json({
             success: false,
-            message: "Something went wrong",
+            message: "Internal server error",
         });
     }
 });
@@ -118,6 +125,13 @@ app.patch(
         try {
             const id = Number(req.params.id);
             const { name, email } = req.body;
+
+            if (isNaN(id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid user ID",
+                });
+            }
 
             const user = await prisma.user.update({
                 where: {
@@ -152,6 +166,13 @@ app.delete(
     async (req: Request<{ id: string }>, res: Response) => {
         try {
             const id = Number(req.params.id);
+
+            if (isNaN(id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid user ID",
+                });
+            }
 
             const user = await prisma.user.delete({
                 where: {

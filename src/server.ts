@@ -4,16 +4,13 @@ import type { Request, Response } from "express";
 import cors from "cors";
 import "dotenv/config";
 import prisma from "./lib/prisma.js";
+import userRouter from "./routes/user.route.js";
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-interface CreateUserBody {
-    name: string;
-    email: string;
-}
+app.use("/users", userRouter);
 
 interface UpdateUserBody {
     name?: string;
@@ -44,44 +41,7 @@ app.get("/", (req: Request, res: Response) => {
 
 // POST /users endpoint to create a new user
 
-app.post(
-    "/users",
-    async (req: Request<{}, {}, CreateUserBody>, res: Response) => {
-        try {
-            const { name, email } = req.body;
-
-            const user = await prisma.user.create({
-                data: {
-                    name,
-                    email,
-                },
-            });
-
-            res.status(201).json({
-                success: true,
-                message: "User created successfully",
-                data: user,
-            });
-        } catch (error) {
-            console.error(error);
-
-            if (
-                error instanceof Prisma.PrismaClientKnownRequestError &&
-                (error as Prisma.PrismaClientKnownRequestError).code === "P2002"
-            ) {
-                return res.status(409).json({
-                    success: false,
-                    message: "Email already exists",
-                });
-            }
-
-            return res.status(500).json({
-                success: false,
-                message: "Internal server error",
-            });
-        }
-    },
-);
+app.use("/users", userRouter);
 
 // GET /users endpoint to fetch all users
 

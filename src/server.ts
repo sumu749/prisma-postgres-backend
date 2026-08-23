@@ -29,6 +29,11 @@ interface TaskParams {
     id: string;
 }
 
+interface UpdateTaskBody {
+    title?: string;
+    completed?: boolean;
+}
+
 // GET / endpoint to check if the server is running
 
 app.get("/", (req: Request, res: Response) => {
@@ -322,6 +327,59 @@ app.get("/tasks/:id", async (req: Request<TaskParams>, res: Response) => {
         });
     }
 });
+
+app.patch(
+    "/tasks/:id",
+    async (req: Request<{ id: string }, {}, UpdateTaskBody>, res: Response) => {
+        try {
+            const id = Number(req.params.id);
+
+            if (isNaN(id)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid task ID",
+                });
+            }
+
+            const { title, completed } = req.body;
+
+            const existingTask = await prisma.task.findUnique({
+                where: { id },
+            });
+
+            if (!existingTask) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Task not found",
+                });
+            }
+
+            const updatedTask = await prisma.task.update({
+                where: {
+                    id,
+                },
+                data: {
+                    ...(title !== undefined && { title }),
+                    ...(completed !== undefined && { completed }),
+                },
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Task updated successfully",
+                data: updatedTask,
+            });
+        } catch (error) {
+            console.error(error);
+
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error",
+            });
+        }
+    },
+);
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

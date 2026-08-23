@@ -41,43 +41,6 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/users", userRouter);
 
-// DELETE /users/:id endpoint to delete a user by ID
-
-app.delete(
-    "/users/:id",
-    async (req: Request<{ id: string }>, res: Response) => {
-        try {
-            const id = Number(req.params.id);
-
-            if (isNaN(id)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid user ID",
-                });
-            }
-
-            const user = await prisma.user.delete({
-                where: {
-                    id,
-                },
-            });
-
-            res.status(200).json({
-                success: true,
-                message: "User deleted successfully",
-                data: user,
-            });
-        } catch (error) {
-            console.error(error);
-
-            res.status(500).json({
-                success: false,
-                message: "Something went wrong",
-            });
-        }
-    },
-);
-
 // Task endpoints
 
 // POST /tasks endpoint to create a new task

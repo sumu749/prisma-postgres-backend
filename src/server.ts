@@ -110,6 +110,8 @@ app.get("/users/:id", async (req: Request<{ id: string }>, res: Response) => {
     }
 });
 
+// PATCH /users/:id endpoint to update a user by ID
+
 app.patch(
     "/users/:id",
     async (req: Request<{ id: string }, {}, UpdateUserBody>, res: Response) => {
@@ -130,6 +132,36 @@ app.patch(
             res.status(200).json({
                 success: true,
                 message: "User updated successfully",
+                data: user,
+            });
+        } catch (error) {
+            console.error(error);
+
+            res.status(500).json({
+                success: false,
+                message: "Something went wrong",
+            });
+        }
+    },
+);
+
+// DELETE /users/:id endpoint to delete a user by ID
+
+app.delete(
+    "/users/:id",
+    async (req: Request<{ id: string }>, res: Response) => {
+        try {
+            const id = Number(req.params.id);
+
+            const user = await prisma.user.delete({
+                where: {
+                    id,
+                },
+            });
+
+            res.status(200).json({
+                success: true,
+                message: "User deleted successfully",
                 data: user,
             });
         } catch (error) {
